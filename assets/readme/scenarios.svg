@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="380" viewBox="0 0 1200 380" role="img" aria-labelledby="scn-title scn-desc">
+  <title id="scn-title">典型工作场景</title>
+  <desc id="scn-desc">展示腾讯 IMA 解析图片/PDF 能力叠加企业微信文档读写能力后，可组合出的四类典型工作场景。</desc>
+
+  <rect width="1200" height="380" rx="22" fill="#F7FAFC"/>
+  <rect x="1" y="1" width="1198" height="378" rx="21" fill="none" stroke="#DCE5EE"/>
+
+  <text x="40" y="46" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="700" fill="#1A8FFF" letter-spacing="2">SCENARIOS</text>
+  <text x="40" y="76" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="22" font-weight="600" fill="#0E2A3E">IMA 解析 × 企微表格 = 更多工作场景</text>
+  <text x="40" y="100" font-family="-apple-system, 'PingFang SC', sans-serif" font-size="13.5" fill="#5A6E83">把扫描件、截图、PDF 票据里的数据，直接沉淀到团队表。</text>
+
+  <g font-family="-apple-system, 'PingFang SC', sans-serif" font-size="13">
+
+    <!-- Card 1 -->
+    <g transform="translate(40 130)">
+      <rect x="0" y="0" width="270" height="220" rx="14" fill="#FFFFFF" stroke="#DCE5EE"/>
+      <rect x="0" y="0" width="270" height="6" rx="3" fill="#1A8FFF"/>
+      <text x="20" y="40" font-family="ui-monospace, monospace" font-size="11" fill="#1A8FFF" letter-spacing="1.5">SCENE 01</text>
+      <text x="20" y="68" font-size="17" font-weight="700" fill="#0E2A3E">外贸退税核对</text>
+      <text x="20" y="92" font-size="12.5" fill="#5A6E83">报关单扫描件 → 智能表格</text>
+
+      <g transform="translate(20 110)" font-family="ui-monospace, monospace" font-size="11.5" fill="#3B556E">
+        <rect x="0" y="0" width="230" height="30" rx="5" fill="#F0F8FF"/>
+        <text x="10" y="20">单证图片 → 解析字段</text>
+        <rect x="0" y="36" width="230" height="30" rx="5" fill="#F0F8FF"/>
+        <text x="10" y="56">出口日期 / 金额 USD</text>
+        <rect x="0" y="72" width="230" height="30" rx="5" fill="#E6F8F3"/>
+        <text x="10" y="92" fill="#0F8B73" font-weight="600">→ 写入企微核对表</text>
+      </g>
+    </g>
+
+    <!-- Card 2 -->
+    <g transform="translate(322 130)">
+      <rect x="0" y="0" width="270" height="220" rx="14" fill="#FFFFFF" stroke="#DCE5EE"/>
+      <rect x="0" y="0" width="270" height="6" rx="3" fill="#5BD8C2"/>
+      <text x="20" y="40" font-family="ui-monospace, monospace" font-size="11" fill="#0F8B73" letter-spacing="1.5">SCENE 02</text>
+      <text x="20" y="68" font-size="17" font-weight="700" fill="#0E2A3E">小说投稿追踪</text>
+      <text x="20" y="92" font-size="12.5" fill="#5A6E83">过稿截图 → 在线表格</text>
+
+      <g transform="translate(20 110)" font-family="ui-monospace, monospace" font-size="11.5" fill="#3B556E">
+        <rect x="0" y="0" width="230" height="30" rx="5" fill="#F0F8FF"/>
+        <text x="10" y="20">编辑回复截图</text>
+        <rect x="0" y="36" width="230" height="30" rx="5" fill="#F0F8FF"/>
+        <text x="10" y="56">杂志 / 期数 / 状态</text>
+        <rect x="0" y="72" width="230" height="30" rx="5" fill="#E6F8F3"/>
+        <text x="10" y="92" fill="#0F8B73" font-weight="600">→ 写入投稿追踪表</text>
+      </g>
+    </g>
+
+    <!-- Card 3 -->
+    <g transform="translate(604 130)">
+      <rect x="0" y="0" width="270" height="220" rx="14" fill="#FFFFFF" stroke="#DCE5EE"/>
+      <rect x="0" y="0" width="270" height="6" rx="3" fill="#1A8FFF"/>
+      <text x="20" y="40" font-family="ui-monospace, monospace" font-size="11" fill="#1A8FFF" letter-spacing="1.5">SCENE 03</text>
+      <text x="20" y="68" font-size="17" font-weight="700" fill="#0E2A3E">自媒体数据周报</text>
+      <text x="20" y="92" font-size="12.5" fill="#5A6E83">数据截图 → 智能表格</text>
+
+      <g transform="translate(20 110)" font-family="ui-monospace, monospace" font-size="11.5" fill="#3B556E">
+        <rect x="0" y="0" width="230" height="30" rx="5" fill="#F0F8FF"/>
+        <text x="10" y="20">平台数据截图</text>
+        <rect x="0" y="36" width="230" height="30" rx="5" fill="#F0F8FF"/>
+        <text x="10" y="56">播放 / 涨粉 / 评论</text>
+        <rect x="0" y="72" width="230" height="30" rx="5" fill="#E6F8F3"/>
+        <text x="10" y="92" fill="#0F8B73" font-weight="600">→ 汇总至团队表</text>
+      </g>
+    </g>
+
+    <!-- Card 4 -->
+    <g transform="translate(886 130)">
+      <rect x="0" y="0" width="274" height="220" rx="14" fill="#FFFFFF" stroke="#DCE5EE"/>
+      <rect x="0" y="0" width="274" height="6" rx="3" fill="#5BD8C2"/>
+      <text x="20" y="40" font-family="ui-monospace, monospace" font-size="11" fill="#0F8B73" letter-spacing="1.5">SCENE 04</text>
+      <text x="20" y="68" font-size="17" font-weight="700" fill="#0E2A3E">财务审计</text>
+      <text x="20" y="92" font-size="12.5" fill="#5A6E83">票据 / 凭证图片 → 智能表格</text>
+
+      <g transform="translate(20 110)" font-family="ui-monospace, monospace" font-size="11.5" fill="#3B556E">
+        <rect x="0" y="0" width="234" height="30" rx="5" fill="#F0F8FF"/>
+        <text x="10" y="20">发票 / 银行回单截图</text>
+        <rect x="0" y="36" width="234" height="30" rx="5" fill="#F0F8FF"/>
+        <text x="10" y="56">金额 / 对方户名 / 日期</text>
+        <rect x="0" y="72" width="234" height="30" rx="5" fill="#E6F8F3"/>
+        <text x="10" y="92" fill="#0F8B73" font-weight="600">→ 写入审计底稿表</text>
+      </g>
+    </g>
+
+  </g>
+</svg>
