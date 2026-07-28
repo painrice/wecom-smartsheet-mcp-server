@@ -62,23 +62,30 @@
 
 ## 5 分钟上手
 
-### 1. 准备企微凭证
+### 1. 准备企微凭证（两种方式选其一）
 
-你需要：
+**方式 A — 配一次永久用（推荐）**
+在 IMA 个人知识库里建一条笔记，标题 `我的企业微信文档凭证`，内容按 [`skills/wecom-sheet/references/credentials_template.md`](skills/wecom-sheet/references/credentials_template.md) 模板填好 `WECOM_CORPID` 与 `WECOM_SECRET`。Agent 会自动读取，**之后每次对话都不用再贴**。
+
+**方式 B — 当轮贴**
+直接在 IMA 对话里把 CORPID + SECRET 发给 Agent。适合临时调试或不想存知识库的场景。
+
+### 2. 企微后台一次性配置
+
 - `WECOM_CORPID` —— 企业 ID（我的企业 → 页面底部）
 - `WECOM_SECRET` —— **自建应用**（不是机器人）的 Secret
 - 应用详情里勾选「文档」「智能表格」权限
 - 「企业可信 IP」配置为 IMA 沙箱出口 IP（指南见 [`skills/wecom-sheet/references/setup_guide.md`](skills/wecom-sheet/references/setup_guide.md)）
 
-### 2. 一句话使用
+### 3. 一句话使用
 
 在 IMA 里说：
 
-> "帮我创建一张『出口退税核对表』，把这份报关单图片里的字段都写进去。我的 CorpID 是 xxx，Secret 是 xxx。"
+> "帮我创建一张『出口退税核对表』，把这份报关单图片里的字段都写进去。"
 
 IMA Agent 会：
 1. 解析你给的图片 / PDF，提取字段
-2. 按 `SKILL.md` 的 curl 模板拿到 access_token
+2. **按"凭证获取策略"自动从 IMA 知识库读取** CORPID + SECRET，拿 access_token
 3. 在企微智能表格里逐字段建表 / 写入
 4. 返回一个你能在企微客户端打开的文档链接
 

@@ -47,13 +47,15 @@ description: 企业微信文档操作技能。当用户需要操作企微智能�
 
 ---
 
-## 前提
+## 凭证获取策略（按优先级）
 
-用户需提供：
-- `WECOM_CORPID`：企业微信 CorpID
-- `WECOM_SECRET`：自建应用 Secret（⚠️ 必须是自建应用，不是机器人）
+`WECOM_CORPID` 与 `WECOM_SECRET` **按下列顺序取**，能省问就省问：
 
-引导模板见 `references/setup_guide.md`。
+1. **IMA 个人知识库 / 笔记（首选）** —— 用户在 IMA 里建一条笔记，标题如「我的企业微信文档凭证」，正文按 `references/credentials_template.md` 的固定字段名存。Agent 直接读取，跨会话复用，不用再问。
+2. **当前对话上下文（次选）** —— 用户在本轮消息里贴了 CORPID + SECRET，直接用。
+3. **明确向用户索要（兜底）** —— 以上都没拿到，再礼貌地问一句。
+
+> ⚠️ SECRET 是敏感信息，建议只在自己的 IMA 账号里使用，不要存到多人共享的知识库。
 
 ### 推荐：用户手动建表
 
@@ -61,6 +63,8 @@ description: 企业微信文档操作技能。当用户需要操作企微智能�
 1. 用户打开企微 → 文档 → 新建智能表格 → 起名
 2. 把文档链接发给你
 3. 你从 URL 提取 docid→查询子表→若无则建子表和字段→写入数据
+
+引导模板见 `references/setup_guide.md`。
 
 ---
 
@@ -134,7 +138,7 @@ curl -s -X POST "https://qyapi.weixin.qq.com/cgi-bin/wedoc/doc_share?access_toke
 
 完整操作步骤：
 
-1. **确认凭证**：用户提供了 CORPID + SECRET
+1. **确认凭证**：按"凭证获取策略"取到 CORPID + SECRET（IMA 知识库 / 当轮上下文 / 询问 三档降级）
 2. **获取 docid**：推荐用户手动建表发链接；或者 API 创建后配权限
 3. **查看子表**：`get_sheet` 看有无「单证核对表」/「收汇登记表」
 4. **建子表**（如无）：`add_sheet` 逐个创建
