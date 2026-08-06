@@ -7,7 +7,9 @@
 用法:
     pip install httpx
     python client.py token --corpid xxx --secret xxx
-    python client.py create_doc --corpid xxx --secret xxx --title "测试"
+    python client.py create_doc --corpid xxx --secret xxx --title "测试" --doc-type 3
+    python client.py get_document --docid xxx
+    python client.py batch_update --docid xxx --text "内容"
 """
 
 import argparse
@@ -25,12 +27,22 @@ except ImportError:
     print("⚠️ httpx 未安装。在 IMA 沙箱中请使用 SKILL.md 中的 curl 命令。", file=sys.stderr)
     print("   本地开发：pip install httpx", file=sys.stderr)
 
+
 # ── API 端点 ──
 TOKEN_URL = "https://qyapi.weixin.qq.com/cgi-bin/gettoken"
 SMARTSHEET_BASE = "https://qyapi.weixin.qq.com/cgi-bin/wedoc/smartsheet"
 SPREADSHEET_BASE = "https://qyapi.weixin.qq.com/cgi-bin/wedoc/spreadsheet"
 DOCUMENT_BASE = "https://qyapi.weixin.qq.com/cgi-bin/wedoc/document"
 CREATE_DOC_URL = "https://qyapi.weixin.qq.com/cgi-bin/wedoc/create_doc"
+MOD_JOIN_RULE_URL = "https://qyapi.weixin.qq.com/cgi-bin/wedoc/mod_doc_join_rule"
+DOC_SHARE_URL = "https://qyapi.weixin.qq.com/cgi-bin/wedoc/doc_share"
+
+# ── doc_type 正确枚举（旧枚举 1/2/3 已失效，报 640054）──
+# 3=文档 | 4=表格 | 10=智能表格 | 11=智能文档
+DOC_TYPE_DOCUMENT = 3
+DOC_TYPE_SPREADSHEET = 4
+DOC_TYPE_SMARTSHEET = 10
+DOC_TYPE_SMART_DOC = 11
 
 # ── 缓存 token ──
 _token_cache: dict = {}
@@ -69,9 +81,9 @@ def cmd_token(args):
 
 
 def cmd_create_doc(args):
-    """创建文档（智能表格/在线表格/在线文档），返回 docid 和 url。
+    """创建文档。
 
-    doc_type: 10=智能表格, 4=在线表格, 3=在线文档
+    doc_type: 3=在线文档 | 10=智能表格（旧枚举 1/2/3 已失效，报 640054）
     """
     token = get_token(args.corpid, args.secret)
     url = f"{CREATE_DOC_URL}?access_token={token}"
@@ -164,148 +176,137 @@ def cmd_update_spreadsheet_cells(args):
 
     formatted = []
     for row in data:
-        frow = []
-        for cell in row:
-            if isinstance(cell, dict):
-                frow.append(cell)
-            elif isinstance(cell, (int, float)):
-                frow.append({"value": str(cell), "value_type": "number"})
-            else:
-                frow.append({"value": str(cell), "value_type": "text"})
-        formatted.append(frow)
+        formatted.append([{"text": str(c)} for c in row])
 
-    result = api_call(SPREADSHEET_BASE, "edit_data", {
+    result = api_call(SPREADSHEET_BASE, "update_cells", {
         "docid": args.docid,
-        "requests": [{"update_range": {
-            "sheet_id": args.sheet_id,
-            "data": formatted,
-            "start_row": args.start_row,
-            "start_col": args.start_col,
-            "rows": rows,
-            "cols": cols,
-        }}]
+        "sheet_id": args.sheet_id or "",
+        "data": formatted,
     }, args.corpid, args.secret)
     print(json.dumps(result, ensure_ascii=False))
 
 
 # ═══════════════════════════════════════
-# 在线文档操作
+# 在线文档操作（Document）— 实战可用
+# 旧接口 append_document_text 已 404，改用 document/get + batch_update
 # ═══════════════════════════════════════
 
 def cmd_get_document(args):
+    """读取文档结构，获取插入坐标（begin/end）。"""
     result = api_call(DOCUMENT_BASE, "get", {"docid": args.docid}, args.corpid, args.secret)
     print(json.dumps(result, ensure_ascii=False))
 
 
-def cmd_append_document_text(args):
-    # 先获取版本号
-    doc_info = api_call(DOCUMENT_BASE, "get", {"docid": args.docid}, args.corpid, args.secret)
-    version = doc_info.get("version", 0)
+def cmd_batch_update(args):
+    """向在线文档写入文本。
 
-    result = api_call(DOCUMENT_BASE, "edit", {
+    最佳实践：始终插到 index=0 开头段落、逆序写入各块，规避 2050065。
+    单次 batch_update 最多 30 个 operation。
+    """
+    # text 可传多块，每块逆序插入 index=0
+    blocks = [b for b in args.text.split("\u0000") if b] if args.split0 else [args.text]
+    requests = [{"insert_text": {"text": b, "location": {"index": 0}}} for b in reversed(blocks)]
+    result = api_call(DOCUMENT_BASE, "batch_update", {
         "docid": args.docid,
-        "requests": [{
-            "insert_text": {
-                "text": args.text,
-                "location": {"index": 0},
-                "version": version,
-            }
-        }]
+        "requests": requests,
     }, args.corpid, args.secret)
     print(json.dumps(result, ensure_ascii=False))
+
+
+def cmd_doc_share(args):
+    """获取正式分享链接（不要直接用 create_doc 返回的 url）。"""
+    token = get_token(args.corpid, args.secret)
+    resp = httpx.post(f"{DOC_SHARE_URL}?access_token={token}",
+                      json={"docid": args.docid}, timeout=30)
+    print(json.dumps(resp.json(), ensure_ascii=False))
+
+
+def cmd_mod_join_rule(args):
+    """配置文档权限（rule=2 企业内可见）。"""
+    token = get_token(args.corpid, args.secret)
+    resp = httpx.post(f"{MOD_JOIN_RULE_URL}?access_token={token}", json={
+        "docid": args.docid,
+        "enable_corp_internal": True,
+        "corp_internal_auth": 1,
+    }, timeout=30)
+    print(json.dumps(resp.json(), ensure_ascii=False))
 
 
 # ═══════════════════════════════════════
 # CLI
 # ═══════════════════════════════════════
 
+def build_parser():
+    p = argparse.ArgumentParser(description="企业微信文档 API 客户端（本地版）")
+    sub = p.add_subparsers(dest="cmd")
+
+    def add_common(sp):
+        sp.add_argument("--corpid", required=True)
+        sp.add_argument("--secret", required=True)
+
+    sp = sub.add_parser("token"); add_common(sp); sp.set_defaults(func=cmd_token)
+
+    sp = sub.add_parser("create_doc"); add_common(sp)
+    sp.add_argument("--title", required=True)
+    sp.add_argument("--doc-type", type=int, default=DOC_TYPE_SMARTSHEET,
+                    help="3=文档 4=表格 10=智能表格 11=智能文档")
+    sp.add_argument("--admin-users", default="")
+    sp.set_defaults(func=cmd_create_doc)
+
+    sp = sub.add_parser("list_sheets"); add_common(sp)
+    sp.add_argument("--docid", required=True); sp.set_defaults(func=cmd_list_sheets)
+
+    sp = sub.add_parser("add_records"); add_common(sp)
+    sp.add_argument("--docid", required=True); sp.add_argument("--sheet-id", required=True)
+    sp.add_argument("--records", required=True); sp.set_defaults(func=cmd_add_records)
+
+    sp = sub.add_parser("get_records"); add_common(sp)
+    sp.add_argument("--docid", required=True); sp.add_argument("--sheet-id", required=True)
+    sp.add_argument("--offset", type=int, default=0); sp.add_argument("--limit", type=int, default=100)
+    sp.add_argument("--filter-field", default=""); sp.add_argument("--filter-value", default="")
+    sp.set_defaults(func=cmd_get_records)
+
+    sp = sub.add_parser("update_records"); add_common(sp)
+    sp.add_argument("--docid", required=True); sp.add_argument("--sheet-id", required=True)
+    sp.add_argument("--records", required=True); sp.set_defaults(func=cmd_update_records)
+
+    sp = sub.add_parser("get_spreadsheet_data"); add_common(sp)
+    sp.add_argument("--docid", required=True); sp.add_argument("--sheet-id", default="")
+    sp.add_argument("--start-row", type=int, default=0); sp.add_argument("--end-row", type=int, default=100)
+    sp.add_argument("--start-col", type=int, default=0); sp.add_argument("--end-col", type=int, default=50)
+    sp.set_defaults(func=cmd_get_spreadsheet_data)
+
+    sp = sub.add_parser("update_spreadsheet_cells"); add_common(sp)
+    sp.add_argument("--docid", required=True); sp.add_argument("--sheet-id", default="")
+    sp.add_argument("--data", required=True); sp.set_defaults(func=cmd_update_spreadsheet_cells)
+
+    sp = sub.add_parser("get_document"); add_common(sp)
+    sp.add_argument("--docid", required=True); sp.set_defaults(func=cmd_get_document)
+
+    sp = sub.add_parser("batch_update"); add_common(sp)
+    sp.add_argument("--docid", required=True); sp.add_argument("--text", required=True)
+    sp.add_argument("--split0", action="store_true", help="用 \\0 分块，各自逆序插入 index=0")
+    sp.set_defaults(func=cmd_batch_update)
+
+    sp = sub.add_parser("doc_share"); add_common(sp)
+    sp.add_argument("--docid", required=True); sp.set_defaults(func=cmd_doc_share)
+
+    sp = sub.add_parser("mod_join_rule"); add_common(sp)
+    sp.add_argument("--docid", required=True); sp.set_defaults(func=cmd_mod_join_rule)
+
+    return p
+
+
 def main():
-    parser = argparse.ArgumentParser(description="企微文档 API 客户端")
-    sub = parser.add_subparsers(dest="command")
-
-    # 公共参数
-    def add_common(p):
-        p.add_argument("--corpid", default=os.getenv("WECOM_CORPID", ""))
-        p.add_argument("--secret", default=os.getenv("WECOM_SECRET", ""))
-
-    def add_docid(p):
-        p.add_argument("--docid", required=True)
-
-    # token
-    p = sub.add_parser("token")
-    add_common(p)
-
-    # 创建文档
-    p = sub.add_parser("create_doc")
-    add_common(p)
-    p.add_argument("--title", required=True, help="文档标题")
-    p.add_argument("--doc_type", type=int, default=10, help="10=智能表格, 4=在线表格, 3=在线文档")
-    p.add_argument("--admin_users", help="管理员用户ID列表，逗号分隔")
-
-    # 智能表格
-    p = sub.add_parser("list_sheets")
-    add_common(p); add_docid(p)
-
-    p = sub.add_parser("add_records")
-    add_common(p); add_docid(p)
-    p.add_argument("--sheet_id", required=True)
-    p.add_argument("--records", required=True, help='JSON: [{"values": {...}}]')
-
-    p = sub.add_parser("get_records")
-    add_common(p); add_docid(p)
-    p.add_argument("--sheet_id", required=True)
-    p.add_argument("--filter_field")
-    p.add_argument("--filter_value")
-    p.add_argument("--offset", type=int, default=0)
-    p.add_argument("--limit", type=int, default=100)
-
-    p = sub.add_parser("update_records")
-    add_common(p); add_docid(p)
-    p.add_argument("--sheet_id", required=True)
-    p.add_argument("--records", required=True)
-
-    # 在线表格
-    p = sub.add_parser("get_spreadsheet_data")
-    add_common(p); add_docid(p)
-    p.add_argument("--sheet_id", default="")
-    p.add_argument("--start_row", type=int, default=0)
-    p.add_argument("--end_row", type=int, default=50)
-    p.add_argument("--start_col", type=int, default=0)
-    p.add_argument("--end_col", type=int, default=20)
-
-    p = sub.add_parser("update_spreadsheet_cells")
-    add_common(p); add_docid(p)
-    p.add_argument("--sheet_id", required=True)
-    p.add_argument("--data", required=True, help='JSON: [["A1","B1"],["A2","B2"]]')
-    p.add_argument("--start_row", type=int, default=0)
-    p.add_argument("--start_col", type=int, default=0)
-
-    # 在线文档
-    p = sub.add_parser("get_document")
-    add_common(p); add_docid(p)
-
-    p = sub.add_parser("append_document_text")
-    add_common(p); add_docid(p)
-    p.add_argument("--text", required=True)
-
+    if not HAS_HTTPX:
+        print("请先安装 httpx：pip install httpx", file=sys.stderr)
+        sys.exit(1)
+    parser = build_parser()
     args = parser.parse_args()
-    if not args.command:
+    if not getattr(args, "cmd", None):
         parser.print_help()
-        return
-
-    func_map = {
-        "token": cmd_token,
-        "create_doc": cmd_create_doc,
-        "list_sheets": cmd_list_sheets,
-        "add_records": cmd_add_records,
-        "get_records": cmd_get_records,
-        "update_records": cmd_update_records,
-        "get_spreadsheet_data": cmd_get_spreadsheet_data,
-        "update_spreadsheet_cells": cmd_update_spreadsheet_cells,
-        "get_document": cmd_get_document,
-        "append_document_text": cmd_append_document_text,
-    }
-    func_map[args.command](args)
+        sys.exit(1)
+    args.func(args)
 
 
 if __name__ == "__main__":

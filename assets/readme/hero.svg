@@ -29,7 +29,7 @@
     </g>
 
     <!-- Project name -->
-    <text x="0" y="98" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif" font-size="44" font-weight="700" fill="#F4F8FB" letter-spacing="-0.5">wecom-smartsheet-mcp-server</text>
+    <text x="0" y="98" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif" font-size="44" font-weight="700" fill="#F4F8FB" letter-spacing="-0.5">ima-wecom-smartsheet</text>
 
     <!-- Subtitle / value -->
     <text x="0" y="148" font-family="-apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif" font-size="21" font-weight="500" fill="#E2ECF5">腾讯 IMA 操作企业微信文档的 SKILL 集合</text>

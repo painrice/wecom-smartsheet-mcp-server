@@ -1,4 +1,4 @@
-# wecom-smartsheet-mcp-server
+# ima-wecom-smartsheet
 
 <img src="assets/readme/hero.svg" alt="腾讯 IMA × 企业微信文档 SKILL 集合 hero" width="100%">
 
@@ -8,7 +8,7 @@
 
 ## 它是什么
 
-`wecom-smartsheet-mcp-server` 是一个为 [腾讯 IMA](https://ima.qq.com/) 知识库量身打造的 **SKILL 集合**，让 IMA 智能体能直接读写企业微信里的三类文档：
+`ima-wecom-smartsheet` 是一个为 [腾讯 IMA](https://ima.qq.com/) 知识库量身打造的 **SKILL 集合**，让 IMA 智能体能直接读写企业微信里的三类文档：
 
 | 文档类型 | 能力 |
 |:---|:---|
@@ -77,6 +77,8 @@
 - 应用详情里勾选「文档」「智能表格」权限
 - 「企业可信 IP」配置为 IMA 沙箱出口 IP（指南见 [`skills/wecom-sheet/references/setup_guide.md`](skills/wecom-sheet/references/setup_guide.md)）
 
+> **注意：** IMA 沙箱环境的公网 IP 会变动，因此可能需要经常在企业微信应用中重新添加 IP 白名单。如果遇到 `errcode: 60020` 错误，请检查并更新 IP 白名单配置。
+
 ### 3. 一句话使用
 
 在 IMA 里说：
@@ -98,7 +100,7 @@ IMA Agent 会：
 | 问题 | 原因 | 解法 |
 |:---|:---|:---|
 | `ModuleNotFoundError: httpx` | IMA 沙箱没有该模块 | **用 `curl`**，别 `pip install` |
-| `errcode: 60020` | 沙箱出口 IP 没加白名单 | 在企微管理后台「企业可信 IP」补上 |
+| `errcode: 60020` | IMA 沙箱出口 IP 没加白名单（IP 会变动） | 在企微管理后台「企业可信 IP」补上，IP 变动时需重新添加 |
 | `errcode: 2022017` | `FIELD_TYPE_NUMBER` 校验失败 | **全用 `FIELD_TYPE_TEXT`**，金额日期也存文本 |
 | 部分字段写入失败 | 批量 `add_fields` 风险 | **逐个**调用 `add_fields`，每次传 1 个字段 |
 | 文档链接打不开 | API 建表默认没用户权限 | **让用户在企微里手动建表**，把链接发给 Agent |
